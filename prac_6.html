@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Prac 6</title>
+	<style type="text/css">
+		.colorBox{
+			padding: 1em 1em 1em 1em;
+			background-color: rgb(--red,--green,--blue);
+			margin-bottom:	2em;
+		}
+	</style>
+</head>
+<body>
+	<div>
+		<div class="colorBox" id="colorBox">
+
+		</div>
+		<div>
+			<table>
+				<tbody>
+					<tr>
+						<td>R: <input type="number" value="0" min="0" max="255" name="red" id="red" oninput="setColor();"></td>
+						<td id="set_red">
+
+						</td>
+					</tr>
+					<tr>
+						<td>G: <input type="number" value="0" min="0" max="255" name="green" id="green" oninput="setColor();"></td>
+						<td id="set_green">
+
+						</td>
+					</tr>
+					<tr>
+						<td>B: <input type="number" value="0" min="0" max="255" name="blue" id="blue" oninput="setColor();"></td>
+						<td id="set_blue">
+
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>	
+
+	<script>
+
+		window.onloadend = createRgb();
+
+		function createRgb(){
+			red = '';
+			green = '';
+			blue = '';
+			for(i = 0; i <= 255; i++){
+				red += `<span style="padding:1px;margin:0;height:22px;background-color: rgb(${i},0,0)" onclick="danger(${i});" onmouseover="danger(${i})" onmouseup="danger(${i});" onmousedown="danger(${i});"></span>`;
+
+				green += `<span style="padding:1px;margin:0;height:22px;background-color: rgb(0,${i},0)" onclick="success(${i});" onmouseover="success(${i})" onmouseup="success(${i});" onmousedown="success(${i});"></span>`;
+
+				blue += `<span style="padding:1px;margin:0;height:22px;background-color: rgb(0,0,${i})" onclick="primary(${i});" onmouseover="primary(${i})" onmouseup="primary(${i});" onmousedown="primary(${i});"></span>`;
+			}
+
+			document.getElementById('set_red').innerHTML = red;
+			document.getElementById('set_green').innerHTML = green;
+			document.getElementById('set_blue').innerHTML = blue;
+		}
+
+		function danger(shad){
+			document.getElementById("red").value = shad;
+			setColor();
+		}
+		function success(shad){
+			document.getElementById("green").value = shad;
+			setColor();
+		}
+		function primary(shad){
+			document.getElementById("blue").value = shad;
+			setColor();
+		}
+
+		function setColor(){
+			red = document.getElementById("red").value;
+			green = document.getElementById("green").value;
+			blue = document.getElementById("blue").value;
+			document.getElementById("colorBox").style.backgroundColor = `rgb(${red},${green},${blue})`;
+
+		}
+	</script>
+
+</body>
+</html>
