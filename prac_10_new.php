@@ -5,7 +5,6 @@ require_once "helper.php";
 
 $main = $members = old('members') ?? [];
 $percentages = old('percentages') ?? [];
-$row_count = (count($members) >= 1) ? count($members) : 0;
 $update_members_ids = old('update_members_ids') ?? [];
 $delete_members_ids = old('delete_members_ids') ?? [];
 
@@ -233,12 +232,16 @@ function getVariable($variable_name)
     var save_form = document.getElementById('save_form');
     var update_input_clone = document.getElementsByClassName('clone_update_input');
     var delete_input_clone = document.getElementsByClassName('clone_delete_input');
+    var main = <?php echo json_encode($main); ?>;
+    var percentages = <?php echo json_encode($percentages); ?>;
+    var update_members_ids = <?php echo json_encode($update_members_ids); ?>;
+    var delete_members_ids = <?php echo json_encode($delete_members_ids) ?>;
 
     function addFields(mem = null) {
         num = null;
         per = null;
         if (mem != null && mem != '') {
-            console.log(mem);
+            // console.log(mem);
             num = mem.num_of_mem;
             per = mem.percentage;
             in_cl = update_input_clone[0].cloneNode(true);
@@ -265,12 +268,15 @@ function getVariable($variable_name)
             per = '';
         }
         if (mem != null && mem != '') {
-            clone.children[4].setAttribute('onclick', `remove_row('row_${row_count}',${mem.id})`);
+            clone.children[4].classList.add(`row_${row_count}`);
+            clone.children[4].classList.add(`${mem.id}`);
+
         } else {
-            clone.children[4].setAttribute('onclick', `remove_row('row_${row_count}')`);
+            clone.children[4].classList.add(`row_${row_count}`);
         }
         clone.style.display = 'block';
         add_text_box.appendChild(clone);
+        getDeleteButtons();
         row_count++;
     }
 
@@ -291,6 +297,32 @@ function getVariable($variable_name)
             dl_element.remove();
         }
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        getDeleteButtons();
+    });
+
+    function getDeleteButtons() {
+        buttons = document.querySelectorAll("button[class*='row']");
+        for (i = 0; i < buttons.length; i++) {
+            class_names = buttons[i].classList;
+            // console.table(class_names);
+            index = class_names.length - 2;
+            index1 = class_names.length - 1;
+            if (class_names[index] != null && class_names[index1] != null) {
+                if (class_names[index].includes('row_')) {
+                    buttons[i].setAttribute('onclick', `remove_row('${class_names[index]}',${class_names[index1]})`);
+                } else {
+                    buttons[i].setAttribute('onclick', `remove_row('${class_names[index1]}')`);
+                }
+            } else if (class_names[index1] != null) {
+                buttons[i].setAttribute('onclick', `remove_row('${class_names[index1]}')`);
+            } else {
+
+            }
+        }
+    }
+
 </script>
 </body>
 </html>
