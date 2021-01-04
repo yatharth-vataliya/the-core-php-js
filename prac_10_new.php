@@ -278,8 +278,8 @@ function getVariable($variable_name)
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        getDeleteButtons();
         generateFields();
+        getDeleteButtons();
     });
 
     function getDeleteButtons() {
@@ -306,17 +306,17 @@ function getVariable($variable_name)
     function generateFields(){
         if(main != null && main != ''){
             for(i = 0; i < main.length; i++){
-                console.log(i);
+                if(main[i].id != null && main[i].id != ''){
+                    addFields(main[i]);
+                    i--;
+                }else if(update_members_ids != null && update_members_ids != ''){
+                    addFields({"id" : update_members_ids[i], "num_of_mem" : main[i], "percentage" : percentages[i]});
+                }else{
+                    addFields();
+                }
                 if(delete_members_ids != null && delete_members_ids != ''){
                     remove_row(null,delete_members_ids[i]);
                 }
-                /*if(main[0].id != null && main[0].id != ''){
-                    addFields(main[i]);
-                }else if(update_members_ids != null && update_members_ids != ''){
-                    addFields({"id" : update_members_ids[i], "num_of_meme" : main[i], "percentage" : percentages[i]});
-                }else{
-                    addFields();
-                }*/
             }
         }else{
 
