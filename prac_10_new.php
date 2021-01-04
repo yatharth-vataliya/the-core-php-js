@@ -219,12 +219,14 @@ function getVariable($variable_name)
     function addFields(mem = null) {
         num = null;
         per = null;
-        if (mem != null && mem != '') {
+        if (mem != null) {
             // console.log(mem);
             num = mem.num_of_mem;
             per = mem.percentage;
             update_ids = document.getElementById('update_members_ids');
-            update_ids.value += `${mem.id},`;
+            if(mem.id != null && mem.id != ''){
+                update_ids.value += `${mem.id},`;
+            }
         }
 
         clone = div_clone[0].cloneNode(true);
@@ -245,7 +247,9 @@ function getVariable($variable_name)
         }
         if (mem != null && mem != '') {
             clone.children[4].classList.add(`row_${row_count}`);
-            clone.children[4].classList.add(`${mem.id}`);
+            if(mem.id != null && mem.id != ''){
+                clone.children[4].classList.add(`${mem.id}`);
+            }
 
         } else {
             clone.children[4].classList.add(`row_${row_count}`);
@@ -258,11 +262,11 @@ function getVariable($variable_name)
 
     function remove_row(row_id = null, mem_delete_id = null) {
         if (mem_delete_id != null && mem_delete_id != '') {
-
-            del_element = document.getElementById(`mem_up_${mem_delete_id}`);
-            if (del_element != null) {
-                del_element.remove();
-            }
+            u_ids = document.getElementById('update_members_ids');
+            uds = u_ids.value.replace(`${mem_delete_id}`,' ');
+            u_ids.value = uds;
+            d_ids = document.getElementById('delete_members_ids');
+            d_ids.value += `${mem_delete_id},`;
         }
         dl_element = document.getElementById(row_id);
         if (row_id != null) {
@@ -299,17 +303,34 @@ function getVariable($variable_name)
     function generateFields() {
         u_ids = update_members_ids.split(',');
         d_ids = delete_members_ids.split(',');
-        if (main != null && main != '') {
+        temp_u = [];
+        for(u = 0; u < u_ids.length; u++){
+            if(u_ids[u] != '' && u_ids[u] != null && u_ids[u] != ' '){
+                temp_u.push(u_ids[u]);
+            }
+        }
+        temp_d = [];
+        for(d = 0; d < d_ids.length; d++){
+            if(d_ids[d] != '' && d_ids[d] != null && d_ids[d] != ' '){
+                temp_d.push(d_ids[d]);
+            }
+        }
+        u_ids = temp_u;
+        d_ids = temp_d;
+        // debugger;
+        if (main != null) {
             for (j = 0; j < main.length; j++) {
                 if (main[j].id != null && main[j].id != '') {
                     addFields(main[j]);
-                } else if (u_ids[j] != null && u_ids[j] != '') {
+                } else if (u_ids[j] != null) {
                     addFields({"id": u_ids[j], "num_of_mem": main[j], "percentage": percentages[j]});
                 } else {
-                    addFields();
+                    addFields({"id": '', "num_of_mem": main[j], "percentage": percentages[j]});
                 }
-                if (d_ids[j] != null && d_ids[j] != '') {
-                    remove_row(null, d_ids[j]);
+                if (d_ids[j] != null && d_ids[j] != undefined) {
+                    if(d_ids[j] != undefined && d_ids[j] != ''){
+                        remove_row(null, d_ids[j]);
+                    }
                 }
             }
         } else {

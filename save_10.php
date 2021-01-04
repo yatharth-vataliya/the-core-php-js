@@ -122,17 +122,25 @@ if ($_POST['type'] == 'Save') {
     $st->bindValue(':funnel', $funnel);
     $st->bindValue(':useremail', $useremail);
     $st->execute();
-
+    $d_ids = explode(',',$delete_members_ids);
     $dlm = $pdo->prepare('DELETE FROM members WHERE id = :dl_id');
-    foreach($delete_members_ids as $dl_id){
+    foreach($d_ids as $dl_id){
         $dlm->bindValue(':dl_id',$dl_id,PDO::PARAM_INT);
         $dlm->execute();
     }
-
     $imst = 'INSERT INTO members (user_id,num_of_mem,percentage) VALUES (:userid,:nm,:per)';
     $umst = 'UPDATE members SET num_of_mem = :nm, percentage = :per WHERE id = :mem_id';
-    $update_members_ids = trim(',',$update_members_ids);
     $u_ids = explode(',',$update_members_ids);
+    $temp_u_ids = [];
+    for($i = 0; $i < count($u_ids); $i++){
+        if(!empty($u_ids[$i]) && $u_ids[$i] != ' '){
+            $temp_u_ids[] = $u_ids[$i];
+        }
+    }
+
+    $u_ids = $temp_u_ids;
+
+
     for ($i = 0; $i < count($members); $i++) {
         if (!empty($u_ids[$i])) {
             $st = $pdo->prepare($umst);
@@ -145,6 +153,7 @@ if ($_POST['type'] == 'Save') {
         $st->bindValue(':per', $percentages[$i],PDO::PARAM_INT);
         $st->execute();
     }
+
     session_unset();
     $_SESSION['info'] = 'All data are saved successfully into database';
     return header('Location: prac_10_new.php');
