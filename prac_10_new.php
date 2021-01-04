@@ -137,28 +137,7 @@ function getVariable($variable_name)
                     </div>
                 </div>
                 <div id="add_text_box" class="col-md-12">
-                    <?php if (!empty($main)): ?>
-                        <?php for ($i = 0; $i < count($main); $i++): ?>
-                            <?php if (!empty($delete_members_ids[$i])): ?>
-                                <?php echo "<script>document.addEventListener('DOMContentLoaded',function(){
-    remove_row(null,$delete_members_ids[$i]);
-})</script>"; ?>
-                            <?php endif; ?>
-                            <?php if (!empty($main[0]->id)): ?>
-                                <?php echo "<script>document.addEventListener('DOMContentLoaded',function(){
-    addFields(" . json_encode($main[$i]) . ");
-})</script>"; ?>
-                            <?php elseif (!empty($update_members_ids[$i])): ?>
-                                <?php echo "<script>document.addEventListener('DOMContentLoaded',function(){
-    addFields(" . json_encode(['id' => $update_members_ids[$i], 'num_of_mem' => $members[$i], 'percentage' => $percentages[$i]]) . ");
-})</script>"; ?>
-                            <?php else: ?>
-                                <?php echo "<script>document.addEventListener('DOMContentLoaded',function(){
-    addFields();
-})</script>"; ?>
-                            <?php endif; ?>
-                        <?php endfor; ?>
-                    <?php endif; ?>
+
                 </div>
                 <div class="row p-2">
                     <div class="col-md-12">
@@ -300,6 +279,7 @@ function getVariable($variable_name)
 
     document.addEventListener('DOMContentLoaded', function () {
         getDeleteButtons();
+        generateFields();
     });
 
     function getDeleteButtons() {
@@ -320,6 +300,26 @@ function getVariable($variable_name)
             } else {
 
             }
+        }
+    }
+
+    function generateFields(){
+        if(main != null && main != ''){
+            for(i = 0; i < main.length; i++){
+                console.log(i);
+                if(delete_members_ids != null && delete_members_ids != ''){
+                    remove_row(null,delete_members_ids[i]);
+                }
+                /*if(main[0].id != null && main[0].id != ''){
+                    addFields(main[i]);
+                }else if(update_members_ids != null && update_members_ids != ''){
+                    addFields({"id" : update_members_ids[i], "num_of_meme" : main[i], "percentage" : percentages[i]});
+                }else{
+                    addFields();
+                }*/
+            }
+        }else{
+
         }
     }
 
