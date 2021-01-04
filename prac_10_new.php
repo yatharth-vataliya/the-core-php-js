@@ -30,11 +30,25 @@ if (!empty($_GET['user_id'])) {
     $mst->execute();
     $main = $mems = $mst->fetchAll(PDO::FETCH_OBJ);*/
 
-    $ust = $pdo->prepare('SELECT users.id as user_id, users.username,users.useremail,users.userurl,users.funnel,members.num_of_mem, members.percentage,members.id as id FROM users INNER JOIN members ON users.id = members.user_id WHERE users.id = :id');
+    $ust = $pdo->prepare('SELECT users.id as user_id, users.username,users.useremail,users.userurl,users.funnel,members.num_of_mem, members.percentage,members.id as id FROM users LEFT JOIN members ON users.id = members.user_id WHERE users.id = :id');
     $ust->bindValue(':id', $_GET['user_id'], PDO::PARAM_INT);
     $ust->execute();
     $main = $ust->fetchAll(PDO::FETCH_CLASS);
-    /*echo "<pre/>";
+
+/*    if (empty($main[0]->id)) {
+        $ust = $pdo->prepare('SELECT * FROM users WHERE id = :id LIMIT 1');
+        $ust->bindValue(':id', $_GET['user_id'], PDO::PARAM_INT);
+        $ust->execute();
+        $u_users = $ust->fetchAll(PDO::FETCH_OBJ);
+
+        $mst = $pdo->prepare('SELECT * FROM members WHERE  user_id = :user_id');
+        $mst->bindValue(':user_id', ((int)$u_users[0]->id), PDO::PARAM_INT);
+        $mst->execute();
+        $main  = $mems = $mst->fetchAll(PDO::FETCH_OBJ);
+        $main = $main + $u_users;
+    }*/
+
+  /*  echo "<pre/>";
     var_dump($main);
     echo "</pre>";
     die;*/
@@ -334,7 +348,9 @@ function getVariable($variable_name)
                 } else if (u_ids[j] != null) {
                     addFields({"id": u_ids[j], "num_of_mem": main[j], "percentage": percentages[j]});
                 } else {
-                    addFields({"id": '', "num_of_mem": main[j], "percentage": percentages[j]});
+                    if(main[j] != null && main[j].id != null){
+                        addFields({"id": '', "num_of_mem": main[j], "percentage": percentages[j]});
+                    }
                 }
                 if (d_ids[j] != null && d_ids[j] != undefined) {
                     if (d_ids[j] != undefined && d_ids[j] != '') {
@@ -368,10 +384,6 @@ function getVariable($variable_name)
             };
         }
     }
-
-    $(".btn-danger").on('click',function(){
-        alert("yes button is click ed");
-    });
 
 </script>
 </body>

@@ -10,7 +10,7 @@ die;*/
 function checkData(...$data) : bool
 {
     global $is_ready;
-    foreach ($data as $value):
+    foreach ($data as $key => $value):
         if (is_array($value)):
             foreach ($value as $val):
                 if (empty($val)):
