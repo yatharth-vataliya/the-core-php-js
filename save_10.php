@@ -65,8 +65,8 @@ $_SESSION['user_id'] = $user_id = $_POST['user_id'] ?? NULL;
 $_SESSION['type'] = $_POST['type'];
 $_SESSION['members'] = $members = $_POST['members'] ?? [];
 $_SESSION['percentages'] = $percentages = $_POST['percentages'] ?? [];
-$_SESSION['update_members_ids'] = $update_members_ids = $_POST['update_members_ids'] ?? [];
-$_SESSION['delete_members_ids'] = $delete_members_ids = $_POST['delete_members_ids'] ?? [];
+$_SESSION['update_members_ids'] = $update_members_ids = $_POST['update_members_ids'] ?? '';
+$_SESSION['delete_members_ids'] = $delete_members_ids = $_POST['delete_members_ids'] ?? '';
 
 if ($_POST['type'] == 'Save') {
     $data = checkData($username, $userurl, $funnel, $useremail, $password, $confirm_password, $members, $percentages);
@@ -131,10 +131,12 @@ if ($_POST['type'] == 'Save') {
 
     $imst = 'INSERT INTO members (user_id,num_of_mem,percentage) VALUES (:userid,:nm,:per)';
     $umst = 'UPDATE members SET num_of_mem = :nm, percentage = :per WHERE id = :mem_id';
+    $update_members_ids = trim(',',$update_members_ids);
+    $u_ids = explode(',',$update_members_ids);
     for ($i = 0; $i < count($members); $i++) {
-        if (!empty($update_members_ids[$i])) {
+        if (!empty($u_ids[$i])) {
             $st = $pdo->prepare($umst);
-            $st->bindValue(':mem_id', $update_members_ids[$i], PDO::PARAM_INT);
+            $st->bindValue(':mem_id', $u_ids[$i], PDO::PARAM_INT);
         } else {
             $st = $pdo->prepare($imst);
             $st->bindValue(':userid', $user_id,PDO::PARAM_INT);

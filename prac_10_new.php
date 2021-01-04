@@ -5,8 +5,8 @@ require_once "helper.php";
 
 $main = $members = old('members') ?? [];
 $percentages = old('percentages') ?? [];
-$update_members_ids = old('update_members_ids') ?? [];
-$delete_members_ids = old('delete_members_ids') ?? [];
+$update_members_ids = old('update_members_ids') ?? '';
+$delete_members_ids = old('delete_members_ids') ?? '';
 
 if (!empty($_GET['delete_id'])) {
     $dst = $pdo->prepare('DELETE FROM users WHERE id = :delete_id');
@@ -84,6 +84,10 @@ function getVariable($variable_name)
 
                 <input type="hidden" name="user_id" value="<?php echo old('user_id');
                 echo (getVariable('u_users')[0]->id) ?? ''; ?>">
+                <input type="hidden" name="update_members_ids" value="" id="update_members_ids"
+                       style="display: none;">
+                <input type="hidden" name="delete_members_ids" value="" id="delete_members_ids"
+                       style="display: none;">
                 <div class="row">
                     <div class="col-md-12">
                         <lable for="user_name">User Name</lable>
@@ -194,10 +198,6 @@ function getVariable($variable_name)
     <button type="button" class="btn btn-danger">-</button>
 </div>
 
-<input type="hidden" name="update_members_ids[]" class="clone_update_input" id="update_members_ids"
-       style="display: none;">
-<input type="hidden" name="delete_members_ids[]" class="clone_delete_input" id="delete_members_ids"
-       style="display: none;">
 
 </div>
 
@@ -223,11 +223,8 @@ function getVariable($variable_name)
             // console.log(mem);
             num = mem.num_of_mem;
             per = mem.percentage;
-            in_cl = update_input_clone[0].cloneNode(true);
-            in_cl.setAttribute('value', mem.id)
-            in_cl.setAttribute('id', `mem_up_${mem.id}`);
-            in_cl.setAttribute('class', '');
-            save_form.appendChild(in_cl);
+            update_ids = document.getElementById('update_members_ids');
+            update_ids.value += `${mem.id},`;
         }
 
         clone = div_clone[0].cloneNode(true);
@@ -261,11 +258,7 @@ function getVariable($variable_name)
 
     function remove_row(row_id = null, mem_delete_id = null) {
         if (mem_delete_id != null && mem_delete_id != '') {
-            dl_cl = delete_input_clone[0].cloneNode(true);
-            dl_cl.setAttribute('value', mem_delete_id);
-            dl_cl.setAttribute('id', `mem_dl_${mem_delete_id}`);
-            dl_cl.setAttribute('class', '');
-            save_form.appendChild(dl_cl);
+
             del_element = document.getElementById(`mem_up_${mem_delete_id}`);
             if (del_element != null) {
                 del_element.remove();
@@ -303,22 +296,23 @@ function getVariable($variable_name)
         }
     }
 
-    function generateFields(){
-        if(main != null && main != ''){
-            for(i = 0; i < main.length; i++){
-                if(main[i].id != null && main[i].id != ''){
-                    addFields(main[i]);
-                    i--;
-                }else if(update_members_ids != null && update_members_ids != ''){
-                    addFields({"id" : update_members_ids[i], "num_of_mem" : main[i], "percentage" : percentages[i]});
-                }else{
+    function generateFields() {
+        u_ids = update_members_ids.split(',');
+        d_ids = delete_members_ids.split(',');
+        if (main != null && main != '') {
+            for (j = 0; j < main.length; j++) {
+                if (main[j].id != null && main[j].id != '') {
+                    addFields(main[j]);
+                } else if (u_ids[j] != null && u_ids[j] != '') {
+                    addFields({"id": u_ids[j], "num_of_mem": main[j], "percentage": percentages[j]});
+                } else {
                     addFields();
                 }
-                if(delete_members_ids != null && delete_members_ids != ''){
-                    remove_row(null,delete_members_ids[i]);
+                if (d_ids[j] != null && d_ids[j] != '') {
+                    remove_row(null, d_ids[j]);
                 }
             }
-        }else{
+        } else {
 
         }
     }
