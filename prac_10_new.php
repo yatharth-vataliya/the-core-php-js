@@ -20,15 +20,24 @@ if (!empty($_GET['delete_id'])) {
 
 
 if (!empty($_GET['user_id'])) {
-    $ust = $pdo->prepare('SELECT * FROM users WHERE id = :id LIMIT 1');
+    /*$ust = $pdo->prepare('SELECT * FROM users WHERE id = :id LIMIT 1');
     $ust->bindValue(':id', $_GET['user_id'], PDO::PARAM_INT);
     $ust->execute();
-    $u_users = $ust->fetchAll(PDO::FETCH_OBJ);
+    $u_users = $ust->fetchAll(PDO::FETCH_OBJ);*/
 
-    $mst = $pdo->prepare('SELECT * FROM members WHERE  user_id = :user_id');
+    /*$mst = $pdo->prepare('SELECT * FROM members WHERE  user_id = :user_id');
     $mst->bindValue(':user_id', ((int)$u_users[0]->id), PDO::PARAM_INT);
     $mst->execute();
-    $main = $mems = $mst->fetchAll(PDO::FETCH_OBJ);
+    $main = $mems = $mst->fetchAll(PDO::FETCH_OBJ);*/
+
+    $ust = $pdo->prepare('SELECT users.id as user_id, users.username,users.useremail,users.userurl,users.funnel,members.num_of_mem, members.percentage,members.id as id FROM users INNER JOIN members ON users.id = members.user_id WHERE users.id = :id');
+    $ust->bindValue(':id', $_GET['user_id'], PDO::PARAM_INT);
+    $ust->execute();
+    $main = $ust->fetchAll(PDO::FETCH_CLASS);
+    /*echo "<pre/>";
+    var_dump($main);
+    echo "</pre>";
+    die;*/
 }
 
 $st = $pdo->query('SELECT * FROM users');
@@ -83,7 +92,7 @@ function getVariable($variable_name)
             <form id="save_form" method="POST" action="save_10.php">
 
                 <input type="hidden" name="user_id" value="<?php echo old('user_id');
-                echo (getVariable('u_users')[0]->id) ?? ''; ?>">
+                echo (getVariable('main')[0]->user_id) ?? ''; ?>">
                 <input type="hidden" name="update_members_ids" value="" id="update_members_ids"
                        style="display: none;">
                 <input type="hidden" name="delete_members_ids" value="" id="delete_members_ids"
@@ -93,7 +102,7 @@ function getVariable($variable_name)
                         <lable for="user_name">User Name</lable>
                         <input type="text" name="user_name" id="user_name" class="form-control"
                                placeholder="User Name" value="<?php echo old('user_name');
-                        echo (getVariable('u_users')[0]->username) ?? ''; ?>"/>
+                        echo (getVariable('main')[0]->username) ?? ''; ?>"/>
                         <span style="display:none;color:red;">This Field is required</span>
                     </div>
                 </div>
@@ -102,7 +111,7 @@ function getVariable($variable_name)
                         <lable for="useremail">User Email</lable>
                         <input type="text" name="useremail" id="useremail" class="form-control"
                                placeholder="User Email" value="<?php echo old('useremail');
-                        echo (getVariable('u_users')[0]->useremail) ?? ''; ?>"/>
+                        echo (getVariable('main')[0]->useremail) ?? ''; ?>"/>
                         <span style="display:none;color:red;">This Field is required</span>
                     </div>
                 </div>
@@ -111,7 +120,7 @@ function getVariable($variable_name)
                         <lable for="userurl">User Url</lable>
                         <input type="text" name="userurl" id="userurl" class="form-control"
                                value="<?php echo old('userurl');
-                               echo (getVariable('u_users')[0]->userurl) ?? ''; ?>" placeholder="User Url">
+                               echo (getVariable('main')[0]->userurl) ?? ''; ?>" placeholder="User Url">
                         <span style="display:none;color:red;">This Field is required</span>
                     </div>
                 </div>
@@ -120,7 +129,7 @@ function getVariable($variable_name)
                         <lable for="funnel">User Funnel</lable>
                         <input type="text" name="funnel" id="funnel" class="form-control"
                                value="<?php echo old('funnel');
-                               echo (getVariable('u_users')[0]->funnel) ?? ''; ?>" placeholder="Funnel">
+                               echo (getVariable('main')[0]->funnel) ?? ''; ?>" placeholder="Funnel">
                         <span style="display:none;color:red;">This Field is required</span>
                     </div>
                 </div>
@@ -224,7 +233,7 @@ function getVariable($variable_name)
             num = mem.num_of_mem;
             per = mem.percentage;
             update_ids = document.getElementById('update_members_ids');
-            if(mem.id != null && mem.id != ''){
+            if (mem.id != null && mem.id != '') {
                 update_ids.value += `${mem.id},`;
             }
         }
@@ -247,7 +256,7 @@ function getVariable($variable_name)
         }
         if (mem != null && mem != '') {
             clone.children[4].classList.add(`row_${row_count}`);
-            if(mem.id != null && mem.id != ''){
+            if (mem.id != null && mem.id != '') {
                 clone.children[4].classList.add(`${mem.id}`);
             }
 
@@ -263,7 +272,7 @@ function getVariable($variable_name)
     function remove_row(row_id = null, mem_delete_id = null) {
         if (mem_delete_id != null && mem_delete_id != '') {
             u_ids = document.getElementById('update_members_ids');
-            uds = u_ids.value.replace(`${mem_delete_id}`,' ');
+            uds = u_ids.value.replace(`${mem_delete_id}`, ' ');
             u_ids.value = uds;
             d_ids = document.getElementById('delete_members_ids');
             d_ids.value += `${mem_delete_id},`;
@@ -279,7 +288,7 @@ function getVariable($variable_name)
         getDeleteButtons();
     });
 
-    function getDeleteButtons() {
+    /*function getDeleteButtons() {
         buttons = document.querySelectorAll("button[class*='row']");
         for (i = 0; i < buttons.length; i++) {
             class_names = buttons[i].classList;
@@ -298,20 +307,20 @@ function getVariable($variable_name)
 
             }
         }
-    }
+    }*/
 
     function generateFields() {
         u_ids = update_members_ids.split(',');
         d_ids = delete_members_ids.split(',');
         temp_u = [];
-        for(u = 0; u < u_ids.length; u++){
-            if(u_ids[u] != '' && u_ids[u] != null && u_ids[u] != ' '){
+        for (u = 0; u < u_ids.length; u++) {
+            if (u_ids[u] != '' && u_ids[u] != null && u_ids[u] != ' ') {
                 temp_u.push(u_ids[u]);
             }
         }
         temp_d = [];
-        for(d = 0; d < d_ids.length; d++){
-            if(d_ids[d] != '' && d_ids[d] != null && d_ids[d] != ' '){
+        for (d = 0; d < d_ids.length; d++) {
+            if (d_ids[d] != '' && d_ids[d] != null && d_ids[d] != ' ') {
                 temp_d.push(d_ids[d]);
             }
         }
@@ -328,7 +337,7 @@ function getVariable($variable_name)
                     addFields({"id": '', "num_of_mem": main[j], "percentage": percentages[j]});
                 }
                 if (d_ids[j] != null && d_ids[j] != undefined) {
-                    if(d_ids[j] != undefined && d_ids[j] != ''){
+                    if (d_ids[j] != undefined && d_ids[j] != '') {
                         remove_row(null, d_ids[j]);
                     }
                 }
@@ -337,6 +346,32 @@ function getVariable($variable_name)
 
         }
     }
+
+    function getDeleteButtons() {
+        buttons = document.querySelectorAll("button[class*='row']");
+        for (i = 0; i < buttons.length; i++) {
+            buttons[i].onclick = function () {
+                class_names = this.classList;
+                index = class_names.length - 2;
+                index1 = class_names.length - 1;
+                if (class_names[index] != null && class_names[index1] != null) {
+                    if (class_names[index].includes('row_')) {
+                        remove_row(class_names[index], class_names[index1]);
+                    } else {
+                        remove_row(class_names[index1])
+                    }
+                } else if (class_names[index1] != null) {
+                    remove_row(class_names[index1])
+                } else {
+
+                }
+            };
+        }
+    }
+
+    $(".btn-danger").on('click',function(){
+        alert("yes button is click ed");
+    });
 
 </script>
 </body>

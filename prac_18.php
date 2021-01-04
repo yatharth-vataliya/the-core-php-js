@@ -46,7 +46,6 @@ $tb2 = $st->fetchAll(PDO::FETCH_OBJ);
 
 <script>
 
-
     $(function () {
         $("#sortable").sortable({
             update: function (event, ui) {
