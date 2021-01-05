@@ -28,7 +28,6 @@ $states = $st->fetchAll(PDO::FETCH_OBJ);
         <div class="col-md-6">
             <select name="state" id="state" class="custom-select"
                     onchange="getDefaultParties();getParticularParties(this.value)">
-                <option value="" selected disabled>-- select any state --</option>
                 <?php foreach ($states as $state): ?>
                     <option value="<?php echo $state->id; ?>"><?php echo $state->name; ?></option>
                 <?php endforeach; ?>
@@ -42,8 +41,7 @@ $states = $st->fetchAll(PDO::FETCH_OBJ);
         </div>
         <div class="col-md-3 m-2 text-white">
             <ul class="p-2 rounded connectedSortable bg-warning" id="sortable2">
-                <li>Hello</li>
-                <li>Nothing</li>
+
             </ul>
         </div>
     </div>
@@ -112,33 +110,33 @@ $states = $st->fetchAll(PDO::FETCH_OBJ);
 
     document.addEventListener('DOMContentLoaded', function () {
         getDefaultParties();
-        getParticularParties();
+        getParticularParties(document.getElementById('state').value);
     });
 
     $(function () {
         $("#sortable1").sortable({
             connectWith: ".connectedSortable",
             update: function (event, ui) {
-                console.clear();
                 var state_id = document.getElementById('state').value;
                 party_array = new Array();
                 $("#sortable1 li").each(function () {
                     party_array.push($(this).data('id'));
                 });
                 form_data = new FormData();
-                for(i = 0; i < party_array.length; i++){
-                    form_data.append("party_ids[]",party_array[i]);
+                for (i = 0; i < party_array.length; i++) {
+                    form_data.append("party_ids[]", party_array[i]);
                 }
-                form_data.append('state_id',state_id);
-                form_data.append('want','set_party');
+                form_data.append('want', 'reset_party');
                 var http = new XMLHttpRequest();
-                http.onreadystatechange = function(){
-                    if(this.readyState == 4 && this.status == 200){
+                http.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
                         response = JSON.parse(this.response);
                         console.log(response);
+                        getDefaultParties();
+                        getParticularParties(state_id);
                     }
                 }
-                http.open("POST","api_task_18.php");
+                http.open("POST", "api_task_18.php");
                 http.send(form_data);
             }
         });
@@ -148,9 +146,28 @@ $states = $st->fetchAll(PDO::FETCH_OBJ);
         $("#sortable2").sortable({
             connectWith: ".connectedSortable",
             update: function (event, ui) {
+                var state_id = document.getElementById('state').value;
+                party_array = new Array();
                 $("#sortable2 li").each(function () {
-                    console.log($(this).data('id'));
+                    party_array.push($(this).data('id'));
                 });
+                form_data = new FormData();
+                for (i = 0; i < party_array.length; i++) {
+                    form_data.append("party_ids[]", party_array[i]);
+                }
+                form_data.append('state_id', state_id);
+                form_data.append('want', 'set_party');
+                var http = new XMLHttpRequest();
+                http.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        response = JSON.parse(this.response);
+                        console.log(response);
+                        getDefaultParties();
+                        getParticularParties(state_id);
+                    }
+                }
+                http.open("POST", "api_task_18.php");
+                http.send(form_data);
             }
         });
     });
