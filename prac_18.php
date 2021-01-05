@@ -131,9 +131,7 @@ $states = $st->fetchAll(PDO::FETCH_OBJ);
                 http.onreadystatechange = function () {
                     if (this.readyState == 4 && this.status == 200) {
                         response = JSON.parse(this.response);
-                        console.log(response);
-                        getDefaultParties();
-                        getParticularParties(state_id);
+                        parties = response.parties;
                     }
                 }
                 http.open("POST", "api_task_18.php");
@@ -161,9 +159,7 @@ $states = $st->fetchAll(PDO::FETCH_OBJ);
                 http.onreadystatechange = function () {
                     if (this.readyState == 4 && this.status == 200) {
                         response = JSON.parse(this.response);
-                        console.log(response);
-                        getDefaultParties();
-                        getParticularParties(state_id);
+                        parties = response.parties;
                     }
                 }
                 http.open("POST", "api_task_18.php");
