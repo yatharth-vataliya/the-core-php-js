@@ -58,7 +58,6 @@ $states = $st->fetchAll(PDO::FETCH_OBJ);
         data.append("want", "parties");
 
         var xhr = new XMLHttpRequest();
-        xhr.withCredentials = true;
 
         xhr.addEventListener("readystatechange", function () {
             if (this.readyState === 4 && this.status == 200) {
@@ -75,7 +74,7 @@ $states = $st->fetchAll(PDO::FETCH_OBJ);
             }
         });
 
-        xhr.open("POST", "http://localhost/yatharth/api_task_18.php");
+        xhr.open("POST", "api_task_18.php");
 
         xhr.send(data);
     }
@@ -86,7 +85,6 @@ $states = $st->fetchAll(PDO::FETCH_OBJ);
         data.append("state_id", state_id);
 
         var xhr = new XMLHttpRequest();
-        xhr.withCredentials = true;
 
         xhr.addEventListener("readystatechange", function () {
             if (this.readyState === 4 && this.status == 200) {
@@ -103,7 +101,7 @@ $states = $st->fetchAll(PDO::FETCH_OBJ);
             }
         });
 
-        xhr.open("POST", "http://localhost/yatharth/api_task_18.php");
+        xhr.open("POST", "api_task_18.php");
 
         xhr.send(data);
     }
@@ -116,16 +114,11 @@ $states = $st->fetchAll(PDO::FETCH_OBJ);
     $(function () {
         $("#sortable1").sortable({
             connectWith: ".connectedSortable",
-            update: function (event, ui) {
+            receive: function (event, ui) {
                 var state_id = document.getElementById('state').value;
-                party_array = new Array();
-                $("#sortable1 li").each(function () {
-                    party_array.push($(this).data('id'));
-                });
+                party_id = ui.item.data('id');
                 form_data = new FormData();
-                for (i = 0; i < party_array.length; i++) {
-                    form_data.append("party_ids[]", party_array[i]);
-                }
+                form_data.append('party_id',party_id);
                 form_data.append('want', 'reset_party');
                 var http = new XMLHttpRequest();
                 http.onreadystatechange = function () {
@@ -143,16 +136,11 @@ $states = $st->fetchAll(PDO::FETCH_OBJ);
     $(function () {
         $("#sortable2").sortable({
             connectWith: ".connectedSortable",
-            update: function (event, ui) {
+            receive: function (event, ui) {
+                party_id = ui.item.data("id");
                 var state_id = document.getElementById('state').value;
-                party_array = new Array();
-                $("#sortable2 li").each(function () {
-                    party_array.push($(this).data('id'));
-                });
                 form_data = new FormData();
-                for (i = 0; i < party_array.length; i++) {
-                    form_data.append("party_ids[]", party_array[i]);
-                }
+                form_data.append('party_id',party_id);
                 form_data.append('state_id', state_id);
                 form_data.append('want', 'set_party');
                 var http = new XMLHttpRequest();
