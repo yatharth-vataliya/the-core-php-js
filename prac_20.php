@@ -50,6 +50,10 @@
                             });
                             $(".custom-counter").fadeIn();
                             $(".widget_value").html(this.options.d_value);
+                        },
+                        "input": function(event){
+                            this.options.d_value = $(this.element).val();
+                            $(".widget_value").html(this.options.d_value);
                         }
                     });
                     $(document).on("mousedown", function (event) {
