@@ -79,10 +79,13 @@
         div_block.css('display', 'block');
         div_block.css('background-color', 'green');
         child_btn = div_block.children('button');
-        child_btn[0].setAttribute('id',row);
-        child_btn[1].setAttribute('id',row);
+        /*child_btn[0].setAttribute('id',row);
+        child_btn[1].setAttribute('id',row);*/
+        $(child_btn[0]).attr('id',row);
+        $(child_btn[1]).attr('id',row);
         child_span = div_block.children('span');
-        child_span[0].setAttribute('id',`dynamic_${row}`)
+        // child_span[0].setAttribute('id',`dynamic_${row}`)
+        $(child_span[0]).attr('id',`dynamic_${row}`);
         div_block.appendTo("#render1");
         ++row;
     });
