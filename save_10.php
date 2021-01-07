@@ -10,7 +10,7 @@ die;*/
 function checkData(...$data) : bool
 {
     global $is_ready;
-    foreach ($data as $value):
+    foreach ($data as $key => $value):
         if (is_array($value)):
             foreach ($value as $val):
                 if (empty($val)):
@@ -65,8 +65,8 @@ $_SESSION['user_id'] = $user_id = $_POST['user_id'] ?? NULL;
 $_SESSION['type'] = $_POST['type'];
 $_SESSION['members'] = $members = $_POST['members'] ?? [];
 $_SESSION['percentages'] = $percentages = $_POST['percentages'] ?? [];
-$_SESSION['update_members_ids'] = $update_members_ids = $_POST['update_members_ids'] ?? [];
-$_SESSION['delete_members_ids'] = $delete_members_ids = $_POST['delete_members_ids'] ?? [];
+$_SESSION['update_members_ids'] = $update_members_ids = $_POST['update_members_ids'] ?? '';
+$_SESSION['delete_members_ids'] = $delete_members_ids = $_POST['delete_members_ids'] ?? '';
 
 if ($_POST['type'] == 'Save') {
     $data = checkData($username, $userurl, $funnel, $useremail, $password, $confirm_password, $members, $percentages);
@@ -122,19 +122,29 @@ if ($_POST['type'] == 'Save') {
     $st->bindValue(':funnel', $funnel);
     $st->bindValue(':useremail', $useremail);
     $st->execute();
-
+    $d_ids = explode(',',$delete_members_ids);
     $dlm = $pdo->prepare('DELETE FROM members WHERE id = :dl_id');
-    foreach($delete_members_ids as $dl_id){
+    foreach($d_ids as $dl_id){
         $dlm->bindValue(':dl_id',$dl_id,PDO::PARAM_INT);
         $dlm->execute();
     }
-
     $imst = 'INSERT INTO members (user_id,num_of_mem,percentage) VALUES (:userid,:nm,:per)';
     $umst = 'UPDATE members SET num_of_mem = :nm, percentage = :per WHERE id = :mem_id';
+    $u_ids = explode(',',$update_members_ids);
+    $temp_u_ids = [];
+    for($i = 0; $i < count($u_ids); $i++){
+        if(!empty($u_ids[$i]) && $u_ids[$i] != ' '){
+            $temp_u_ids[] = $u_ids[$i];
+        }
+    }
+
+    $u_ids = $temp_u_ids;
+
+
     for ($i = 0; $i < count($members); $i++) {
-        if (!empty($update_members_ids[$i])) {
+        if (!empty($u_ids[$i])) {
             $st = $pdo->prepare($umst);
-            $st->bindValue(':mem_id', $update_members_ids[$i], PDO::PARAM_INT);
+            $st->bindValue(':mem_id', $u_ids[$i], PDO::PARAM_INT);
         } else {
             $st = $pdo->prepare($imst);
             $st->bindValue(':userid', $user_id,PDO::PARAM_INT);
@@ -143,6 +153,7 @@ if ($_POST['type'] == 'Save') {
         $st->bindValue(':per', $percentages[$i],PDO::PARAM_INT);
         $st->execute();
     }
+
     session_unset();
     $_SESSION['info'] = 'All data are saved successfully into database';
     return header('Location: prac_10_new.php');

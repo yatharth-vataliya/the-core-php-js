@@ -1,21 +1,8 @@
 <?php
-
 require_once("db.php");
 
-$st = $pdo->prepare('SELECT * FROM sort_it ORDER BY order_id ASC');
-$st->execute();
-
-$data = $st->fetchAll(PDO::FETCH_OBJ);
-
-$st = $pdo->prepare('SELECT * FROM tabular_sorting WHERE tb1_order IS NOT NULL ORDER BY tb1_order ASC');
-$st->execute();
-
-$tb1 = $st->fetchAll(PDO::FETCH_OBJ);
-
-$st = $pdo->prepare('SELECT * FROM tabular_sorting WHERE tb2_order IS NOT NULL ORDER BY tb2_order ASC');
-$st->execute();
-
-$tb2 = $st->fetchAll(PDO::FETCH_OBJ);
+$st = $pdo->query('SELECT * FROM states LIMIT 20');
+$states = $st->fetchAll(PDO::FETCH_OBJ);
 
 ?>
 <!doctype html>
@@ -37,7 +24,27 @@ $tb2 = $st->fetchAll(PDO::FETCH_OBJ);
 
 <body>
 <div class="container-fluid">
+    <div class="row p-2">
+        <div class="col-md-6">
+            <select name="state" id="state" class="custom-select"
+                    onchange="getDefaultParties();getParticularParties(this.value)">
+                <?php foreach ($states as $state): ?>
+                    <option value="<?php echo $state->id; ?>"><?php echo $state->name; ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+    </div>
+    <div class="row rounded">
+        <div class="col-md-3 m-2 text-white">
+            <ul class="p-2 bg-success rounded connectedSortable" id="sortable1">
+            </ul>
+        </div>
+        <div class="col-md-3 m-2 text-white">
+            <ul class="p-2 rounded connectedSortable bg-warning" id="sortable2">
 
+            </ul>
+        </div>
+    </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
@@ -45,91 +52,108 @@ $tb2 = $st->fetchAll(PDO::FETCH_OBJ);
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
 <script>
-    $(function () {
-        $("#sortable").sortable({
-            update: function (event, ui) {
-                var od_array = new Array();
-                $("#sortable li").each(function () {
-                    od_array.push($(this).data("id"));
-                });
-                var http = new XMLHttpRequest();
-                http.onreadystatechange = function () {
-                    if (this.readyState == 4 && this.status == 200) {
-                        response = JSON.parse(this.response);
-                        alert(response.message);
-                    }
+
+    function getDefaultParties() {
+        var data = new FormData();
+        data.append("want", "parties");
+
+        var xhr = new XMLHttpRequest();
+
+        xhr.addEventListener("readystatechange", function () {
+            if (this.readyState === 4 && this.status == 200) {
+                response = JSON.parse(this.response);
+                sortable1 = document.getElementById('sortable1');
+                parties = response.parties;
+                var d_party = '';
+                for (i = 0; i < parties.length; i++) {
+                    d_party += `
+                        <li class="p-1 text-decoration-none" data-id="${parties[i].id}">${parties[i].party_name}</li>
+                    `;
                 }
-                http.open("POST", "reorder.php");
-                form_data = new FormData();
-                for (i = 0; i < od_array.length; i++) {
-                    form_data.append('data_id[]', od_array[i]);
-                }
-                http.send(form_data);
+                sortable1.innerHTML = d_party;
             }
         });
-        $("#sortable").disableSelection();
+
+        xhr.open("POST", "api_task_18.php");
+
+        xhr.send(data);
+    }
+
+    function getParticularParties(state_id = null) {
+        var data = new FormData();
+        data.append("want", "particular_parties");
+        data.append("state_id", state_id);
+
+        var xhr = new XMLHttpRequest();
+
+        xhr.addEventListener("readystatechange", function () {
+            if (this.readyState === 4 && this.status == 200) {
+                response = JSON.parse(this.response);
+                sortable2 = document.getElementById('sortable2');
+                parties = response.parties;
+                var party = '';
+                for (i = 0; i < parties.length; i++) {
+                    party += `
+                        <li class="p-1" data-id="${parties[i].id}">${parties[i].party_name}</li>
+                    `;
+                }
+                sortable2.innerHTML = party;
+            }
+        });
+
+        xhr.open("POST", "api_task_18.php");
+
+        xhr.send(data);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        getDefaultParties();
+        getParticularParties(document.getElementById('state').value);
     });
 
     $(function () {
         $("#sortable1").sortable({
             connectWith: ".connectedSortable",
-            update: function (event, ui) {
-
+            receive: function (event, ui) {
+                var state_id = document.getElementById('state').value;
+                party_id = ui.item.data('id');
+                form_data = new FormData();
+                form_data.append('party_id',party_id);
+                form_data.append('want', 'reset_party');
                 var http = new XMLHttpRequest();
                 http.onreadystatechange = function () {
                     if (this.readyState == 4 && this.status == 200) {
                         response = JSON.parse(this.response);
-                        console.log(response);
+                        parties = response.parties;
                     }
                 }
-
-                var od_array1 = new Array();
-
-                $("#sortable1 li").each(function () {
-                    od_array1.push($(this).data("id"));
-                });
-
-                form_data = new FormData();
-                for (i = 0; i < od_array1.length; i++) {
-                    form_data.append('tb1_ids[]', od_array1[i]);
-                }
-
-                http.open("POST", "sort_save.php");
+                http.open("POST", "api_task_18.php");
                 http.send(form_data);
-
             }
-        }).disableSelection();
+        });
     });
 
     $(function () {
         $("#sortable2").sortable({
             connectWith: ".connectedSortable",
-            update: function (event, ui) {
-
+            receive: function (event, ui) {
+                party_id = ui.item.data("id");
+                var state_id = document.getElementById('state').value;
+                form_data = new FormData();
+                form_data.append('party_id',party_id);
+                form_data.append('state_id', state_id);
+                form_data.append('want', 'set_party');
                 var http = new XMLHttpRequest();
                 http.onreadystatechange = function () {
                     if (this.readyState == 4 && this.status == 200) {
                         response = JSON.parse(this.response);
-                        console.log(response);
+                        parties = response.parties;
                     }
                 }
-
-                var od_array2 = new Array();
-
-                form_data = new FormData();
-
-                $("#sortable2 li").each(function () {
-                    od_array2.push($(this).data("id"));
-                });
-
-                for (i = 0; i < od_array2.length; i++) {
-                    form_data.append('tb2_ids[]', od_array2[i]);
-                }
-                http.open("POST", "sort_save.php");
+                http.open("POST", "api_task_18.php");
                 http.send(form_data);
-
             }
-        }).disableSelection();
+        });
     });
 
 </script>

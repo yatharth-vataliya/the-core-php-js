@@ -5,9 +5,8 @@ require_once "helper.php";
 
 $main = $members = old('members') ?? [];
 $percentages = old('percentages') ?? [];
-$row_count = (count($members) >= 1) ? count($members) : 0;
-$update_members_ids = old('update_members_ids') ?? [];
-$delete_members_ids = old('delete_members_ids') ?? [];
+$update_members_ids = old('update_members_ids') ?? '';
+$delete_members_ids = old('delete_members_ids') ?? '';
 
 if (!empty($_GET['delete_id'])) {
     $dst = $pdo->prepare('DELETE FROM users WHERE id = :delete_id');
@@ -21,15 +20,38 @@ if (!empty($_GET['delete_id'])) {
 
 
 if (!empty($_GET['user_id'])) {
-    $ust = $pdo->prepare('SELECT * FROM users WHERE id = :id LIMIT 1');
+    /*$ust = $pdo->prepare('SELECT * FROM users WHERE id = :id LIMIT 1');
     $ust->bindValue(':id', $_GET['user_id'], PDO::PARAM_INT);
     $ust->execute();
-    $u_users = $ust->fetchAll(PDO::FETCH_OBJ);
+    $u_users = $ust->fetchAll(PDO::FETCH_OBJ);*/
 
-    $mst = $pdo->prepare('SELECT * FROM members WHERE  user_id = :user_id');
+    /*$mst = $pdo->prepare('SELECT * FROM members WHERE  user_id = :user_id');
     $mst->bindValue(':user_id', ((int)$u_users[0]->id), PDO::PARAM_INT);
     $mst->execute();
-    $main = $mems = $mst->fetchAll(PDO::FETCH_OBJ);
+    $main = $mems = $mst->fetchAll(PDO::FETCH_OBJ);*/
+
+    $ust = $pdo->prepare('SELECT users.id as user_id, users.username,users.useremail,users.userurl,users.funnel,members.num_of_mem, members.percentage,members.id as id FROM users LEFT JOIN members ON users.id = members.user_id WHERE users.id = :id');
+    $ust->bindValue(':id', $_GET['user_id'], PDO::PARAM_INT);
+    $ust->execute();
+    $main = $ust->fetchAll(PDO::FETCH_CLASS);
+
+/*    if (empty($main[0]->id)) {
+        $ust = $pdo->prepare('SELECT * FROM users WHERE id = :id LIMIT 1');
+        $ust->bindValue(':id', $_GET['user_id'], PDO::PARAM_INT);
+        $ust->execute();
+        $u_users = $ust->fetchAll(PDO::FETCH_OBJ);
+
+        $mst = $pdo->prepare('SELECT * FROM members WHERE  user_id = :user_id');
+        $mst->bindValue(':user_id', ((int)$u_users[0]->id), PDO::PARAM_INT);
+        $mst->execute();
+        $main  = $mems = $mst->fetchAll(PDO::FETCH_OBJ);
+        $main = $main + $u_users;
+    }*/
+
+  /*  echo "<pre/>";
+    var_dump($main);
+    echo "</pre>";
+    die;*/
 }
 
 $st = $pdo->query('SELECT * FROM users');
@@ -84,13 +106,17 @@ function getVariable($variable_name)
             <form id="save_form" method="POST" action="save_10.php">
 
                 <input type="hidden" name="user_id" value="<?php echo old('user_id');
-                echo (getVariable('u_users')[0]->id) ?? ''; ?>">
+                echo (getVariable('main')[0]->user_id) ?? ''; ?>">
+                <input type="hidden" name="update_members_ids" value="" id="update_members_ids"
+                       style="display: none;">
+                <input type="hidden" name="delete_members_ids" value="" id="delete_members_ids"
+                       style="display: none;">
                 <div class="row">
                     <div class="col-md-12">
                         <lable for="user_name">User Name</lable>
                         <input type="text" name="user_name" id="user_name" class="form-control"
                                placeholder="User Name" value="<?php echo old('user_name');
-                        echo (getVariable('u_users')[0]->username) ?? ''; ?>"/>
+                        echo (getVariable('main')[0]->username) ?? ''; ?>"/>
                         <span style="display:none;color:red;">This Field is required</span>
                     </div>
                 </div>
@@ -99,7 +125,7 @@ function getVariable($variable_name)
                         <lable for="useremail">User Email</lable>
                         <input type="text" name="useremail" id="useremail" class="form-control"
                                placeholder="User Email" value="<?php echo old('useremail');
-                        echo (getVariable('u_users')[0]->useremail) ?? ''; ?>"/>
+                        echo (getVariable('main')[0]->useremail) ?? ''; ?>"/>
                         <span style="display:none;color:red;">This Field is required</span>
                     </div>
                 </div>
@@ -108,7 +134,7 @@ function getVariable($variable_name)
                         <lable for="userurl">User Url</lable>
                         <input type="text" name="userurl" id="userurl" class="form-control"
                                value="<?php echo old('userurl');
-                               echo (getVariable('u_users')[0]->userurl) ?? ''; ?>" placeholder="User Url">
+                               echo (getVariable('main')[0]->userurl) ?? ''; ?>" placeholder="User Url">
                         <span style="display:none;color:red;">This Field is required</span>
                     </div>
                 </div>
@@ -117,7 +143,7 @@ function getVariable($variable_name)
                         <lable for="funnel">User Funnel</lable>
                         <input type="text" name="funnel" id="funnel" class="form-control"
                                value="<?php echo old('funnel');
-                               echo (getVariable('u_users')[0]->funnel) ?? ''; ?>" placeholder="Funnel">
+                               echo (getVariable('main')[0]->funnel) ?? ''; ?>" placeholder="Funnel">
                         <span style="display:none;color:red;">This Field is required</span>
                     </div>
                 </div>
@@ -138,28 +164,7 @@ function getVariable($variable_name)
                     </div>
                 </div>
                 <div id="add_text_box" class="col-md-12">
-                    <?php if (!empty($main)): ?>
-                        <?php for ($i = 0; $i < count($main); $i++): ?>
-                            <?php if (!empty($delete_members_ids[$i])): ?>
-                                <?php echo "<script>document.addEventListener('DOMContentLoaded',function(){
-    remove_row(null,$delete_members_ids[$i]);
-})</script>"; ?>
-                            <?php endif; ?>
-                            <?php if (!empty($main[0]->id)): ?>
-                                <?php echo "<script>document.addEventListener('DOMContentLoaded',function(){
-    addFields(" . json_encode($main[$i]) . ");
-})</script>"; ?>
-                            <?php elseif (!empty($update_members_ids[$i])): ?>
-                                <?php echo "<script>document.addEventListener('DOMContentLoaded',function(){
-    addFields(" . json_encode(['id' => $update_members_ids[$i], 'num_of_mem' => $members[$i], 'percentage' => $percentages[$i]]) . ");
-})</script>"; ?>
-                            <?php else: ?>
-                                <?php echo "<script>document.addEventListener('DOMContentLoaded',function(){
-    addFields();
-})</script>"; ?>
-                            <?php endif; ?>
-                        <?php endfor; ?>
-                    <?php endif; ?>
+
                 </div>
                 <div class="row p-2">
                     <div class="col-md-12">
@@ -216,10 +221,6 @@ function getVariable($variable_name)
     <button type="button" class="btn btn-danger">-</button>
 </div>
 
-<input type="hidden" name="update_members_ids[]" class="clone_update_input" id="update_members_ids"
-       style="display: none;">
-<input type="hidden" name="delete_members_ids[]" class="clone_delete_input" id="delete_members_ids"
-       style="display: none;">
 
 </div>
 
@@ -233,19 +234,22 @@ function getVariable($variable_name)
     var save_form = document.getElementById('save_form');
     var update_input_clone = document.getElementsByClassName('clone_update_input');
     var delete_input_clone = document.getElementsByClassName('clone_delete_input');
+    var main = <?php echo json_encode($main); ?>;
+    var percentages = <?php echo json_encode($percentages); ?>;
+    var update_members_ids = <?php echo json_encode($update_members_ids); ?>;
+    var delete_members_ids = <?php echo json_encode($delete_members_ids) ?>;
 
     function addFields(mem = null) {
         num = null;
         per = null;
-        if (mem != null && mem != '') {
-            console.log(mem);
+        if (mem != null) {
+            // console.log(mem);
             num = mem.num_of_mem;
             per = mem.percentage;
-            in_cl = update_input_clone[0].cloneNode(true);
-            in_cl.setAttribute('value', mem.id)
-            in_cl.setAttribute('id', `mem_up_${mem.id}`);
-            in_cl.setAttribute('class', '');
-            save_form.appendChild(in_cl);
+            update_ids = document.getElementById('update_members_ids');
+            if (mem.id != null && mem.id != '') {
+                update_ids.value += `${mem.id},`;
+            }
         }
 
         clone = div_clone[0].cloneNode(true);
@@ -265,32 +269,122 @@ function getVariable($variable_name)
             per = '';
         }
         if (mem != null && mem != '') {
-            clone.children[4].setAttribute('onclick', `remove_row('row_${row_count}',${mem.id})`);
+            clone.children[4].classList.add(`row_${row_count}`);
+            if (mem.id != null && mem.id != '') {
+                clone.children[4].classList.add(`${mem.id}`);
+            }
+
         } else {
-            clone.children[4].setAttribute('onclick', `remove_row('row_${row_count}')`);
+            clone.children[4].classList.add(`row_${row_count}`);
         }
         clone.style.display = 'block';
         add_text_box.appendChild(clone);
+        getDeleteButtons();
         row_count++;
     }
 
     function remove_row(row_id = null, mem_delete_id = null) {
         if (mem_delete_id != null && mem_delete_id != '') {
-            dl_cl = delete_input_clone[0].cloneNode(true);
-            dl_cl.setAttribute('value', mem_delete_id);
-            dl_cl.setAttribute('id', `mem_dl_${mem_delete_id}`);
-            dl_cl.setAttribute('class', '');
-            save_form.appendChild(dl_cl);
-            del_element = document.getElementById(`mem_up_${mem_delete_id}`);
-            if (del_element != null) {
-                del_element.remove();
-            }
+            u_ids = document.getElementById('update_members_ids');
+            uds = u_ids.value.replace(`${mem_delete_id}`, ' ');
+            u_ids.value = uds;
+            d_ids = document.getElementById('delete_members_ids');
+            d_ids.value += `${mem_delete_id},`;
         }
         dl_element = document.getElementById(row_id);
         if (row_id != null) {
             dl_element.remove();
         }
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        generateFields();
+        getDeleteButtons();
+    });
+
+    /*function getDeleteButtons() {
+        buttons = document.querySelectorAll("button[class*='row']");
+        for (i = 0; i < buttons.length; i++) {
+            class_names = buttons[i].classList;
+            // console.table(class_names);
+            index = class_names.length - 2;
+            index1 = class_names.length - 1;
+            if (class_names[index] != null && class_names[index1] != null) {
+                if (class_names[index].includes('row_')) {
+                    buttons[i].setAttribute('onclick', `remove_row('${class_names[index]}',${class_names[index1]})`);
+                } else {
+                    buttons[i].setAttribute('onclick', `remove_row('${class_names[index1]}')`);
+                }
+            } else if (class_names[index1] != null) {
+                buttons[i].setAttribute('onclick', `remove_row('${class_names[index1]}')`);
+            } else {
+
+            }
+        }
+    }*/
+
+    function generateFields() {
+        u_ids = update_members_ids.split(',');
+        d_ids = delete_members_ids.split(',');
+        temp_u = [];
+        for (u = 0; u < u_ids.length; u++) {
+            if (u_ids[u] != '' && u_ids[u] != null && u_ids[u] != ' ') {
+                temp_u.push(u_ids[u]);
+            }
+        }
+        temp_d = [];
+        for (d = 0; d < d_ids.length; d++) {
+            if (d_ids[d] != '' && d_ids[d] != null && d_ids[d] != ' ') {
+                temp_d.push(d_ids[d]);
+            }
+        }
+        u_ids = temp_u;
+        d_ids = temp_d;
+        // debugger;
+        if (main != null) {
+            for (j = 0; j < main.length; j++) {
+                if (main[j].id != null && main[j].id != '') {
+                    addFields(main[j]);
+                } else if (u_ids[j] != null) {
+                    addFields({"id": u_ids[j], "num_of_mem": main[j], "percentage": percentages[j]});
+                } else {
+                    if(main[j] != null && main[j].id != null){
+                        addFields({"id": '', "num_of_mem": main[j], "percentage": percentages[j]});
+                    }
+                }
+                if (d_ids[j] != null && d_ids[j] != undefined) {
+                    if (d_ids[j] != undefined && d_ids[j] != '') {
+                        remove_row(null, d_ids[j]);
+                    }
+                }
+            }
+        } else {
+
+        }
+    }
+
+    function getDeleteButtons() {
+        buttons = document.querySelectorAll("button[class*='row']");
+        for (i = 0; i < buttons.length; i++) {
+            buttons[i].onclick = function () {
+                class_names = this.classList;
+                index = class_names.length - 2;
+                index1 = class_names.length - 1;
+                if (class_names[index] != null && class_names[index1] != null) {
+                    if (class_names[index].includes('row_')) {
+                        remove_row(class_names[index], class_names[index1]);
+                    } else {
+                        remove_row(class_names[index1])
+                    }
+                } else if (class_names[index1] != null) {
+                    remove_row(class_names[index1])
+                } else {
+
+                }
+            };
+        }
+    }
+
 </script>
 </body>
 </html>
