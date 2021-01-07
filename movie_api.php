@@ -1,5 +1,7 @@
 <?php
 
+$counter = 1;
+
 getmovie:
 
 $curl = curl_init();
@@ -26,6 +28,10 @@ if(!empty($response)){
 	echo $response;
 	return;
 }else{
+    $counter++;
+    if($counter > 5){
+        return;
+    }
 	goto getmovie;
 }
 
